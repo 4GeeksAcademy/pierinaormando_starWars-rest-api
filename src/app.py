@@ -261,15 +261,54 @@ def get_favorite_planets(user_id):
 #add favorites planets
 @app.route('/favoritePlanets/user/<int:user_id>', methods=['POST'])
 def create_favorite_planets(user_id):
-    body = request.get_json(silent=True)
-    if body is None:
+    body = request.get_json()
+    if not body:
         return jsonify({'msg': 'Debes enviar información en el body'}), 400
-    favorite = FavoritePlanets(**body, user_id=user_id)
-    db.session.add(favorite)
+
+    #obtengo planet_relationship con .get para verificar si existe en el body
+    planet_relationship = body.get('planet_relationship')
+
+    if planet_relationship is None:
+        return jsonify({'msg': 'El campo planet_relationship es obligatorio'}), 400
+
+    existing_favorite = FavoritePlanets.query.filter_by(user_id=user_id, planet_id=planet_relationship).first()
+
+    if existing_favorite:
+        return jsonify({'msg': 'Este planeta ya está en favoritos para este usuario'}), 400
+
+    new_favorite_planet = FavoritePlanets(user_id=user_id, planet_id=planet_relationship)
+    db.session.add(new_favorite_planet)
     db.session.commit()
-    return jsonify({'msg': 'El Planeta se agregó a favoritos'})
-  
-  #get favorites characters
+
+    return jsonify({'msg': 'El Planeta se agregó a favoritos'}), 200
+
+#delete planet by planet_id
+@app.route('/favoritePlanets/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planets(planet_id):
+                #filtro el planeta por id en la tabla de favoritos
+    favorite_planet = FavoritePlanets.query.filter_by(planet_id=planet_id).first()
+    if favorite_planet is None:
+        return jsonify({'msg': 'El Planeta favorito con ID {} no existe'.format(planet_id)}), 404
+    
+    db.session.delete(favorite_planet)
+    db.session.commit()
+
+    return jsonify({'msg': 'El Planeta favorito se eliminó correctamente'}), 200
+
+@app.route('/favoritePlanets/user/<int:user_id>/planet/<int:planet_id>', methods=['DELETE'])
+def delete_favorite_planets_user(user_id, planet_id):
+    #doble filtrado para encontrar el registro con la id de ese usuario y la id del planeta
+    favorite_user = FavoritePlanets.query.filter_by(user_id=user_id, planet_id=planet_id).first()
+    
+    if favorite_user is None:
+        return jsonify({'msg': 'El Usuario favorito con ID {} para el Planeta con ID {} no existe'.format(user_id, planet_id)}), 404
+
+    db.session.delete(favorite_user)
+    db.session.commit()
+
+    return jsonify({'msg': 'El Usuario favorito para el Planeta se eliminó correctamente'}), 200
+
+#get favorites characters
 @app.route('/favoriteCharacters/user/<int:user_id>', methods=['GET'])
 def get_favorite_characters(user_id):
     user = User.query.get(user_id)
@@ -284,13 +323,26 @@ def get_favorite_characters(user_id):
 #add favorites characters
 @app.route('/favoriteCharacters/user/<int:user_id>', methods=['POST'])
 def create_favorite_characters(user_id):
-    body = request.get_json(silent=True)
-    if body is None:
+    body = request.get_json()
+    if not body:
         return jsonify({'msg': 'Debes enviar información en el body'}), 400
-    favorite = FavoriteCharacters(**body, user_id=user_id)
-    db.session.add(favorite)
+
+    #obtengo character_relationship con .get para verificar si existe en el body
+    character_relationship = body.get('character_relationship')
+
+    if character_relationship is None:
+        return jsonify({'msg': 'El campo character_relationship es obligatorio'}), 400
+
+    existing_favorite = FavoriteCharacters.query.filter_by(user_id=user_id, character_id=character_relationship).first()
+
+    if existing_favorite:
+        return jsonify({'msg': 'Este personaje ya está en favoritos para este usuario'}), 400
+
+    new_favorite_character = FavoriteCharacters(user_id=user_id, character_id=character_relationship)
+    db.session.add(new_favorite_character)
     db.session.commit()
-    return jsonify({'msg': 'El Personaje se agregó a favoritos'})
+
+    return jsonify({'msg': 'El Personaje se agregó a favoritos'}), 200
 
   #get favorites vehicles
 @app.route('/favoriteVehicles/user/<int:user_id>', methods=['GET'])
@@ -307,13 +359,26 @@ def get_favorite_vehicles(user_id):
 #add favorites vehicles
 @app.route('/favoriteVehicles/user/<int:user_id>', methods=['POST'])
 def create_favorite_vehicles(user_id):
-    body = request.get_json(silent=True)
-    if body is None:
+    body = request.get_json()
+    if not body:
         return jsonify({'msg': 'Debes enviar información en el body'}), 400
-    favorite = FavoriteVehicles(**body, user_id=user_id)
-    db.session.add(favorite)
+
+    #obtengo vehicle_relationship con .get para verificar si existe en el body
+    vehicle_relationship = body.get('vehicle_relationship')
+
+    if vehicle_relationship is None:
+        return jsonify({'msg': 'El campo vehicle_relationship es obligatorio'}), 400
+
+    existing_favorite = FavoriteVehicles.query.filter_by(user_id=user_id, vehicle_id=vehicle_relationship).first()
+
+    if existing_favorite:
+        return jsonify({'msg': 'Este personaje ya está en favoritos para este usuario'}), 400
+
+    new_favorite_vehicle = FavoriteVehicles(user_id=user_id, vehicle_id=vehicle_relationship)
+    db.session.add(new_favorite_vehicle)
     db.session.commit()
-    return jsonify({'msg': 'El Vehiculo se agregó a favoritos'})
+
+    return jsonify({'msg': 'El Vehiculo se agregó a favoritos'}), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':

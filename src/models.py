@@ -135,3 +135,4 @@ class FavoriteVehicles(db.Model):
             "user_id": self.user_id,
             "vehicle_id": self.vehicle_id
         }
+
